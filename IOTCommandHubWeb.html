@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Note Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #080227;
+      h1{
+        color: #f79604;
+        text-align: center;
+      }
+      p{
+        color: #f79604;
+      }
+
+    }
+    textarea, button, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+      background-color: #08044f;
+      border: 1px solid #cccccc;
+      border-radius: 8px;
+      color: #f79604;
+      
+    }
+    .section {
+      margin-top: 30px;
+      padding: 10px;
+      border: 1px solid #cccccc;
+      border-radius: 8px;
+      color: #f79604;
+      textarea{
+        background-color: #ffffff;
+        color: #000;
+      }
+    }
+    #logs {
+      height: 150px;
+      overflow-y: scroll;
+      background-color: #ffffff;
+      padding: 10px;
+      font-family: monospace;
+      color: #d81111;
+    }
+  </style>
+</head>
+<body>
+  <h1>IOT COMMAND HUB</h1>
+
+  <div class="section">
+    <h2>Create a Note</h2>
+    <textarea id="note" rows="5" placeholder="Write your note here..."></textarea>
+    <button onclick="sendNote()">Save Note to Desktop</button>
+  </div>
+
+  <div class="section">
+    <h2>Launch IDE</h2>
+    <select id="ideSelect">
+      <option value="vscode">VS Code</option>
+      <option value="pycharm">PyCharm</option>
+      <option value="msvs">MSVS</option>
+    </select>
+    <button onclick="launchIDE()">Launch Selected IDE</button>
+  </div>
+
+  <div class="section">
+    <h2>Live Flask Logs</h2>
+    <div id="logs"></div>
+  </div>
+
+
+<script>
+  function sendNote() {
+    const note = document.getElementById("note").value;
+    fetch("http://192.168.47.89:5000/save_note", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: note })
+    })
+    .then(res => res.json())
+    .then(data => alert(data.status))
+    .catch(err => console.error(err));
+  }
+
+
+  function launchIDE() {
+    const ide = document.getElementById("ideSelect").value;
+    fetch("http://192.168.47.89:5000/launch_ide", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ide })
+    })
+    .then(res => res.json())
+    .then(data => alert(data.status))
+    .catch(err => console.error(err));
+  }
+  
+
+  const logArea = document.getElementById("logs");
+  const evtSource = new EventSource("http://192.168.47.89:5000/logs");
+  evtSource.onmessage = (e) => {
+    logArea.innerText += e.data + "\n";
+    logArea.scrollTop = logArea.scrollHeight;
+  };
+</script>
+</body>
+</html>
